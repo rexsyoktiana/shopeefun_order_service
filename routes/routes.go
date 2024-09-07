@@ -36,9 +36,12 @@ func (r *Routes) SetupBaseURL() {
 
 func (r *Routes) cartRoutes() {
 	r.Router.HandleFunc("GET /cart/{user_id}", middleware.ApplyMiddleware(r.Cart.GetCartByUserID, middleware.EnabledCors, middleware.LoggerMiddleware()))
+	r.Router.HandleFunc("PUT /cart/update/{user_id}", middleware.ApplyMiddleware(r.Cart.UpdateCart, middleware.EnabledCors, middleware.LoggerMiddleware()))
+	r.Router.HandleFunc("POST /cart/add", middleware.ApplyMiddleware(r.Cart.AddCart, middleware.EnabledCors, middleware.LoggerMiddleware()))
+	r.Router.HandleFunc("DELETE /cart/delete/{user_id}", middleware.ApplyMiddleware(r.Cart.DeleteCart, middleware.EnabledCors, middleware.LoggerMiddleware()))
 }
 
-func (r *Routes) SetupOrder() {
+func (r *Routes) orderRoutes() {
 	r.Router.HandleFunc("POST /order/create", middleware.ApplyMiddleware(r.Order.CreateOrder, middleware.EnabledCors, middleware.LoggerMiddleware()))
 }
 
@@ -46,7 +49,7 @@ func (r *Routes) SetupRouter() {
 	r.Router = http.NewServeMux()
 	r.SetupBaseURL()
 	r.cartRoutes()
-	r.SetupOrder()
+	r.orderRoutes()
 }
 
 func (r *Routes) Run(port string) {

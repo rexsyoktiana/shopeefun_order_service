@@ -3,23 +3,32 @@ package order
 import (
 	model "cart-order-service/repository/models"
 	"database/sql"
+	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 )
 
 type store struct {
-	db *sql.DB
+	db     *sql.DB
+	logger zerolog.Logger
 }
 
-func NewStore(db *sql.DB) *store {
-	return &store{db}
+func NewStore(db *sql.DB, logger zerolog.Logger) *store {
+	return &store{
+		db:     db,
+		logger: logger,
+	}
 }
 
 // CreateOrder is a method that creates a new order and returns the order ID.
 // It returns an error if any occurs during the creation process.
 func (o *store) CreateOrder(bReq model.Order) (*uuid.UUID, *string, error) {
+	logMsgStr := "Repository:Order - CreateOrder:"
+
 	tx, err := o.db.Begin()
 	if err != nil {
+		o.logger.Error().Any("Err", err).Msg(fmt.Sprintf("%v Failed to Begin tx", logMsgStr))
 		return nil, nil, err
 	}
 
@@ -53,11 +62,13 @@ func (o *store) CreateOrder(bReq model.Order) (*uuid.UUID, *string, error) {
 		bReq.RefCode,
 	).Scan(&orderID, &refCode); err != nil {
 		tx.Rollback()
+		o.logger.Error().Any("Err", err).Msg(fmt.Sprintf("%v Failed to Scan orderId, refCode", logMsgStr))
 		return nil, nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
 		tx.Rollback()
+		o.logger.Error().Any("Err", err).Msg(fmt.Sprintf("%v Failed to Commit tx", logMsgStr))
 		return nil, nil, err
 	}
 
@@ -67,8 +78,11 @@ func (o *store) CreateOrder(bReq model.Order) (*uuid.UUID, *string, error) {
 // createOrderItemsLogs is a method that creates a new order items log.
 // It returns an error if any occurs during the creation process.
 func (o *store) CreateOrderItemsLogs(bReq model.OrderItemsLogs) (*string, error) {
+	logMsgStr := "Repository:Order - CreateOrderItemsLogs:"
+
 	tx, err := o.db.Begin()
 	if err != nil {
+		o.logger.Error().Any("Err", err).Msg(fmt.Sprintf("%v Failed to Begin tx", logMsgStr))
 		return nil, err
 	}
 
@@ -95,11 +109,13 @@ func (o *store) CreateOrderItemsLogs(bReq model.OrderItemsLogs) (*string, error)
 		bReq.Notes,
 	).Scan(&refCode); err != nil {
 		tx.Rollback()
+		o.logger.Error().Any("Err", err).Msg(fmt.Sprintf("%v Failed to Scan refCode", logMsgStr))
 		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
 		tx.Rollback()
+		o.logger.Error().Any("Err", err).Msg(fmt.Sprintf("%v Failed to Commit tx", logMsgStr))
 		return nil, err
 	}
 

@@ -4,6 +4,7 @@ import (
 	model "cart-order-service/repository/models"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 )
 
 type orderStore interface {
@@ -12,11 +13,15 @@ type orderStore interface {
 }
 
 type order struct {
-	store orderStore
+	store  orderStore
+	logger zerolog.Logger
 }
 
-func NewOrder(store orderStore) *order {
-	return &order{store}
+func NewOrder(store orderStore, logger zerolog.Logger) *order {
+	return &order{
+		store:  store,
+		logger: logger,
+	}
 }
 
 func (o *order) CreateOrder(bReq model.Order) (*uuid.UUID, error) {
